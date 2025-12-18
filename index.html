@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dernek Karar Yönetim Panosu</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
+        .card { border: none; box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05); border-radius: 12px; }
+        .btn-primary { background-color: #0d6efd; }
+        .status-badge { font-size: 0.85em; padding: 6px 12px; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-dark bg-dark mb-4">
+    <div class="container">
+        <span class="navbar-brand mb-0 h1"><i class="fas fa-gavel me-2"></i>Dernek Karar Takip</span>
+        <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#ekleModal">
+            <i class="fas fa-plus me-1"></i> Yeni Karar
+        </button>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="row mb-4 text-center">
+        <div class="col-md-4"><div class="card p-3"><h3 id="statTotal">-</h3><small class="text-muted">Toplam Karar</small></div></div>
+        <div class="col-md-4"><div class="card p-3"><h3 id="statPending" class="text-warning">-</h3><small class="text-muted">Bekleyen</small></div></div>
+        <div class="col-md-4"><div class="card p-3"><h3 id="statDone" class="text-success">-</h3><small class="text-muted">Tamamlanan</small></div></div>
+    </div>
+
+    <div class="card p-4">
+        <div id="loader" class="text-center py-5"><div class="spinner-border text-primary"></div><p>Veriler Yükleniyor...</p></div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle" id="dataTable" style="display:none">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Tarih</th>
+                        <th>Karar Metni</th>
+                        <th>Kategori</th>
+                        <th>Sorumlu</th>
+                        <th>Son Tarih</th>
+                        <th>Durum</th>
+                        <th class="text-end">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody id="tabloGovdesi"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="ekleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Yeni Karar Ekle</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <form id="ekleForm">
+                    <input type="text" class="form-control mb-2" id="e_metin" placeholder="Karar Metni" required>
+                    <select class="form-select mb-2" id="e_kategori">
+                        <option>Mali</option><option>İdari</option><option>Etkinlik</option><option>Proje</option><option>Hukuki</option>
+                    </select>
+                    <input type="text" class="form-control mb-2" id="e_sorumlu" placeholder="Sorumlu Kişi">
+                    <label class="small text-muted">Son Tarih:</label>
+                    <input type="date" class="form-control mb-2" id="e_sonTarih">
+                </form>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-primary" onclick="ekle()">Kaydet</button></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="duzenleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Kararı Düzenle</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <input type="hidden" id="d_id">
+                <label>Karar Metni</label>
+                <input type="text" class="form-control mb-2" id="d_metin">
+                <label>Kategori</label>
+                <select class="form-select mb-2" id="d_kategori">
+                    <option>Mali</option><option>İdari</option><option>Etkinlik</option><option>Proje</option><option>Hukuki</option>
+                </select>
+                <label>Sorumlu</label>
+                <input type="text" class="form-control mb-2" id="d_sorumlu">
+                <label>Son Tarih</label>
+                <input type="date" class="form-control mb-2" id="d_sonTarih">
+                <label>Durum</label>
+                <select class="form-select mb-2" id="d_durum">
+                    <option value="Bekliyor">Bekliyor</option>
+                    <option value="İşlemde">İşlemde</option>
+                    <option value="Tamamlandı">Tamamlandı</option>
+                    <option value="İptal">İptal</option>
+                </select>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-primary" onclick="guncelle()">Güncelle</button></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // --- GÜNCEL URL BURAYA ---
+    const API_URL = "https://script.google.com/macros/s/AKfycbw7bRDAF0EVw5mWLW8J1DmyzcjQITJ4iU0JFqEKTiLl5dFIGhJQtgXtk4PoMD7fkSn64w/exec"; 
+
+    window.onload = verileriGetir;
+
+    async function verileriGetir() {
+        document.getElementById('loader').style.display = 'block';
+        document.getElementById('dataTable').style.display = 'none';
+        
+        try {
+            const res = await fetch(API_URL + "?action=read");
+            const data = await res.json();
+            data.reverse(); // Yeniler en üstte
+            
+            const tbody = document.getElementById('tabloGovdesi');
+            tbody.innerHTML = "";
+            
+            // İstatistikler
+            document.getElementById('statTotal').innerText = data.length;
+            document.getElementById('statPending').innerText = data.filter(x => x.Durum === 'Bekliyor').length;
+            document.getElementById('statDone').innerText = data.filter(x => x.Durum === 'Tamamlandı').length;
+
+            data.forEach(item => {
+                let badgeClass = 'bg-secondary';
+                if(item.Durum === 'Tamamlandı') badgeClass = 'bg-success';
+                if(item.Durum === 'İşlemde') badgeClass = 'bg-warning text-dark';
+                if(item.Durum === 'İptal') badgeClass = 'bg-danger';
+
+                const row = `
+                    <tr>
+                        <td><small class="text-muted">#${item.ID}</small></td>
+                        <td>${formatDate(item.Tarih)}</td>
+                        <td>${item['Karar Metni']}</td>
+                        <td><span class="badge bg-light text-dark border">${item.Kategori}</span></td>
+                        <td>${item.Sorumlu}</td>
+                        <td>${item['Son Tarih']}</td>
+                        <td><span class="badge ${badgeClass} status-badge">${item.Durum}</span></td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-outline-primary me-1" onclick='modalAc(${JSON.stringify(item)})'><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="sil(${item.ID})"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>`;
+                tbody.innerHTML += row;
+            });
+            document.getElementById('dataTable').style.display = 'table';
+        } catch(e) { console.error(e); alert("Veri çekilemedi!"); }
+        finally { document.getElementById('loader').style.display = 'none'; }
+    }
+
+    async function ekle() {
+        const veri = {
+            kararMetni: document.getElementById('e_metin').value,
+            kategori: document.getElementById('e_kategori').value,
+            sorumlu: document.getElementById('e_sorumlu').value,
+            sonTarih: document.getElementById('e_sonTarih').value
+        };
+        
+        await apiRequest("add", veri);
+        bootstrap.Modal.getInstance(document.getElementById('ekleModal')).hide();
+        document.getElementById('ekleForm').reset();
+    }
+
+    function modalAc(item) {
+        document.getElementById('d_id').value = item.ID;
+        document.getElementById('d_metin').value = item['Karar Metni'];
+        document.getElementById('d_kategori').value = item.Kategori;
+        document.getElementById('d_sorumlu').value = item.Sorumlu;
+        document.getElementById('d_sonTarih').value = item['Son Tarih'];
+        document.getElementById('d_durum').value = item.Durum;
+        
+        new bootstrap.Modal(document.getElementById('duzenleModal')).show();
+    }
+
+    async function guncelle() {
+        const veri = {
+            id: document.getElementById('d_id').value,
+            kararMetni: document.getElementById('d_metin').value,
+            kategori: document.getElementById('d_kategori').value,
+            sorumlu: document.getElementById('d_sorumlu').value,
+            sonTarih: document.getElementById('d_sonTarih').value,
+            durum: document.getElementById('d_durum').value
+        };
+        
+        await apiRequest("update", veri);
+        bootstrap.Modal.getInstance(document.getElementById('duzenleModal')).hide();
+    }
+
+    async function sil(id) {
+        if(confirm("Silmek istediğine emin misin?")) {
+            // Silme işlemi GET ile basitçe tetikleniyor
+            document.getElementById('loader').style.display = 'block';
+            await fetch(API_URL + "?action=delete&id=" + id);
+            verileriGetir();
+        }
+    }
+
+    async function apiRequest(action, bodyData) {
+        document.getElementById('loader').style.display = 'block';
+        try {
+            await fetch(API_URL + "?action=" + action, {
+                method: "POST",
+                body: JSON.stringify(bodyData)
+            });
+            verileriGetir();
+        } catch(e) { alert("İşlem Başarısız"); console.log(e); }
+    }
+
+    function formatDate(dateStr) {
+        if(!dateStr) return "";
+        return dateStr.includes("T") ? dateStr.split("T")[0] : dateStr;
+    }
+</script>
+</body>
+</html>
