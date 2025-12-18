@@ -7,18 +7,20 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
-        .project-card { cursor: pointer; transition: transform 0.2s; border-left: 5px solid #0d6efd; }
-        .project-card:hover { transform: translateY(-3px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
         .hidden { display: none !important; }
         
-        /* GİRİŞ EKRANI (OVERLAY) */
+        /* GİRİŞ EKRANI (TAM EKRAN KAPLAMA) */
         #loginOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #212529; z-index: 9999;
             display: flex; align-items: center; justify-content: center;
         }
-        .login-box { background: white; padding: 2rem; border-radius: 10px; width: 100%; max-width: 400px; text-align: center; }
+        .login-box { background: white; padding: 2.5rem; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; }
+        
+        /* KART STİLLERİ */
+        .project-card { cursor: pointer; transition: all 0.2s; border-left: 5px solid #0d6efd; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .project-card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
@@ -26,28 +28,27 @@
 <div id="loginOverlay">
     <div class="login-box shadow-lg">
         <h3 class="mb-4"><i class="fas fa-lock text-primary"></i> Güvenli Giriş</h3>
-        <p class="text-muted small">Yönetici şifresiyle giriş yapın.</p>
-        <input type="password" id="loginPass" class="form-control mb-3 text-center" placeholder="Şifre" onkeyup="if(event.key === 'Enter') login()">
+        <input type="password" id="loginPass" class="form-control mb-3 text-center" placeholder="Yönetici Şifresi" autofocus onkeyup="if(event.key === 'Enter') login()">
         <button class="btn btn-primary w-100" onclick="login()">Giriş Yap</button>
-        <p id="loginError" class="text-danger mt-2 small hidden">Hatalı Şifre!</p>
+        <div id="loginError" class="alert alert-danger mt-3 small hidden">Hatalı Şifre!</div>
     </div>
 </div>
 
 <div id="mainApp" class="hidden">
     <nav class="navbar navbar-dark bg-dark mb-4">
         <div class="container">
-            <span class="navbar-brand"><i class="fas fa-layer-group me-2"></i>Dernek Proje Sistemi</span>
+            <span class="navbar-brand"><i class="fas fa-layer-group me-2"></i>Dernek Yönetim</span>
             <div>
                 <button id="backBtn" class="btn btn-outline-light btn-sm hidden me-2" onclick="showProjectList()">
                     <i class="fas fa-arrow-left"></i> Projeler
                 </button>
-                <button class="btn btn-danger btn-sm" onclick="logout()" title="Çıkış Yap"><i class="fas fa-sign-out-alt"></i></button>
+                <button class="btn btn-danger btn-sm" onclick="logout()" title="Güvenli Çıkış"><i class="fas fa-sign-out-alt"></i></button>
             </div>
         </div>
     </nav>
 
     <div class="container">
-        <div id="loader" class="text-center py-5 hidden"><div class="spinner-border text-primary"></div><p>İşlem yapılıyor...</p></div>
+        <div id="loader" class="text-center py-5 hidden"><div class="spinner-border text-primary"></div><p>Yükleniyor...</p></div>
 
         <div id="projectListView">
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -61,16 +62,16 @@
             <h3 id="currentProjectTitle" class="mb-3 text-primary border-bottom pb-2"></h3>
             
             <div class="row mb-3 text-center">
-                <div class="col-4"><div class="card p-2 bg-white"><h4 id="statTotal">0</h4><small>Toplam</small></div></div>
-                <div class="col-4"><div class="card p-2 bg-white"><h4 id="statPending" class="text-warning">0</h4><small>Bekleyen</small></div></div>
-                <div class="col-4"><div class="card p-2 bg-white"><h4 id="statDone" class="text-success">0</h4><small>Bitti</small></div></div>
+                <div class="col-4"><div class="card p-2 border-0 shadow-sm"><h4 id="statTotal" class="mb-0">0</h4><small class="text-muted">Toplam</small></div></div>
+                <div class="col-4"><div class="card p-2 border-0 shadow-sm"><h4 id="statPending" class="text-warning mb-0">0</h4><small class="text-muted">Bekleyen</small></div></div>
+                <div class="col-4"><div class="card p-2 border-0 shadow-sm"><h4 id="statDone" class="text-success mb-0">0</h4><small class="text-muted">Tamamlandı</small></div></div>
             </div>
 
             <button class="btn btn-primary w-100 mb-3" data-bs-toggle="modal" data-bs-target="#ekleModal">
-                <i class="fas fa-plus-circle"></i> Karar Ekle
+                <i class="fas fa-plus-circle"></i> Yeni Karar Ekle
             </button>
 
-            <div class="card p-3">
+            <div class="card p-3 border-0 shadow-sm">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle">
                         <thead class="table-light"><tr><th>ID</th><th>Tarih</th><th>Karar</th><th>Sorumlu</th><th>Durum</th><th class="text-end">İşlem</th></tr></thead>
@@ -91,9 +92,9 @@
         <div class="modal-content">
             <div class="modal-header"><h5 class="modal-title">Yeni Karar</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <div class="modal-body">
-                <input type="text" class="form-control mb-2" id="e_metin" placeholder="Karar Metni">
+                <input type="text" class="form-control mb-2" id="e_metin" placeholder="Karar Metni" required>
                 <select class="form-select mb-2" id="e_kategori"><option>Genel</option><option>Mali</option><option>Etkinlik</option></select>
-                <input type="text" class="form-control mb-2" id="e_sorumlu" placeholder="Sorumlu">
+                <input type="text" class="form-control mb-2" id="e_sorumlu" placeholder="Sorumlu Kişi">
                 <input type="date" class="form-control mb-2" id="e_sonTarih">
             </div>
             <div class="modal-footer"><button type="button" class="btn btn-primary" onclick="kararEkle()">Kaydet</button></div>
@@ -120,59 +121,81 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // --- URL BURAYA ---
-    const API_URL = "https://script.google.com/macros/s/AKfycbzgwTw946a3NdQJeHsAvwAQuTj_4p-sWRxJgnPJAedJEeGm-Lg91s003c-AbwhAH6SBiA/exec";
+    // --- LÜTFEN URL'Yİ GÜNCELLE ---
+    const API_URL = "BURAYA_GOOGLE_APPS_SCRIPT_URL_YAPISTIR";
     
-    // ŞİFREYİ HAFIZADA TUTAN DEĞİŞKEN
-    let SESSION_KEY = ""; 
+    // Değişkenler
+    let SESSION_KEY = sessionStorage.getItem('dernekKey'); // Varsa hafızadan al
     let currentSheetName = "";
 
     function loader(show) { document.getElementById('loader').className = show ? "text-center py-5" : "hidden"; }
 
-    // --- GİRİŞ SİSTEMİ ---
-    async function login() {
-        const pass = document.getElementById('loginPass').value;
-        if(!pass) return;
+    // SAYFA AÇILDIĞINDA
+    window.onload = function() {
+        if (SESSION_KEY) {
+            // Hafızada şifre varsa direkt girmeyi dene
+            login(true);
+        }
+    };
 
-        const btn = document.querySelector('.login-box button');
-        btn.disabled = true; btn.innerText = "Kontrol ediliyor...";
-        
+    // --- GİRİŞ SİSTEMİ ---
+    async function login(autoLogin = false) {
+        const pass = autoLogin ? SESSION_KEY : document.getElementById('loginPass').value;
+        if (!pass) return;
+
+        // Buton animasyonu (Otomatik girişte gerek yok)
+        if (!autoLogin) {
+            const btn = document.querySelector('.login-box button');
+            btn.disabled = true; btn.innerText = "Kontrol ediliyor...";
+        }
+
         try {
-            // Şifreyi test etmek için projeleri çekmeyi deniyoruz
+            // Şifreyi test et (Proje listesini isteyerek)
             const res = await fetch(API_URL + "?action=getProjects&key=" + pass);
             const data = await res.json();
 
             if (data.status === "error") {
+                // Şifre Yanlış
                 document.getElementById('loginError').classList.remove('hidden');
-                btn.disabled = false; btn.innerText = "Giriş Yap";
+                document.getElementById('loginError').innerText = "Şifre Yanlış!";
+                sessionStorage.removeItem('dernekKey'); // Hatalıysa sil
+                if (!autoLogin) { 
+                    const btn = document.querySelector('.login-box button');
+                    btn.disabled = false; btn.innerText = "Giriş Yap";
+                }
             } else {
-                // Şifre Doğru!
-                SESSION_KEY = pass; // Şifreyi değişkene kaydet
-                document.getElementById('loginOverlay').style.display = 'none'; // Giriş ekranını gizle
+                // Şifre Doğru -> İçeri Al
+                SESSION_KEY = pass;
+                sessionStorage.setItem('dernekKey', pass); // Hafızaya kaydet (F5 için)
+                
+                document.getElementById('loginOverlay').style.display = 'none'; // Giriş ekranını uçur
                 document.getElementById('mainApp').classList.remove('hidden'); // Uygulamayı aç
-                renderProjects(data); // Listeyi bas
+                renderProjects(data); // Projeleri bas
             }
-        } catch(e) { 
-            alert("Bağlantı hatası! İnternetini veya URL'yi kontrol et."); 
+        } catch(e) {
             console.error(e);
-            btn.disabled = false; btn.innerText = "Giriş Yap"; 
+            if(!autoLogin) {
+                alert("Bağlantı hatası! URL'yi veya interneti kontrol et.");
+                const btn = document.querySelector('.login-box button');
+                btn.disabled = false; btn.innerText = "Giriş Yap";
+            }
         }
     }
 
     function logout() {
-        location.reload(); // Sayfayı yenilemek şifreyi hafızadan siler
+        sessionStorage.removeItem('dernekKey'); // Hafızayı temizle
+        location.reload(); // Sayfayı yenile (Giriş ekranına atar)
     }
 
-    // --- PROJE İŞLEMLERİ ---
+    // --- PROJE FONKSİYONLARI ---
     function renderProjects(projects) {
         const container = document.getElementById('projectContainer');
         container.innerHTML = "";
         projects.forEach(p => {
             container.innerHTML += `
             <div class="col-md-4 mb-3">
-                <div class="card project-card p-3" onclick="openProject('${p}')">
-                    <h5 class="mb-0">${p}</h5>
-                    <small class="text-muted">Görüntüle &rarr;</small>
+                <div class="card project-card p-4" onclick="openProject('${p}')">
+                    <h5 class="mb-0 text-dark"><i class="fas fa-folder text-warning me-2"></i>${p}</h5>
                 </div>
             </div>`;
         });
@@ -180,7 +203,6 @@
 
     async function loadProjects() {
         loader(true);
-        // Artık key parametresine SESSION_KEY değişkenini koyuyoruz
         const res = await fetch(API_URL + "?action=getProjects&key=" + SESSION_KEY);
         const data = await res.json();
         renderProjects(data);
@@ -189,23 +211,22 @@
 
     async function yeniProjeEkle() {
         const ad = prompt("Yeni Proje Adı:");
-        if(!ad) return;
+        if (!ad) return;
         loader(true);
-        // Prompt yok, SESSION_KEY kullanılıyor
         const res = await fetch(API_URL + "?action=createProject&name=" + encodeURIComponent(ad) + "&key=" + SESSION_KEY);
         const data = await res.json();
-        if(data.status === "success") { loadProjects(); } else { alert(data.message); loader(false); }
+        if (data.status === "success") { loadProjects(); } else { alert(data.message); loader(false); }
     }
     
     async function projeSil() {
-        if(!confirm("Bu proje tamamen silinecek! Emin misiniz?")) return;
+        if (!confirm("BU PROJE VE İÇİNDEKİ TÜM VERİLER SİLİNECEK! Emin misin?")) return;
         loader(true);
         const res = await fetch(API_URL + "?action=deleteProject&name=" + encodeURIComponent(currentSheetName) + "&key=" + SESSION_KEY);
         const data = await res.json();
-        if(data.status === "success") { showProjectList(); loadProjects(); } else { alert(data.message); loader(false); }
+        if (data.status === "success") { showProjectList(); loadProjects(); } else { alert(data.message); loader(false); }
     }
 
-    // --- DASHBOARD İŞLEMLERİ ---
+    // --- DASHBOARD (KARAR) FONKSİYONLARI ---
     function openProject(name) {
         currentSheetName = name;
         document.getElementById('currentProjectTitle').innerText = name;
@@ -229,18 +250,20 @@
         const tbody = document.getElementById('tabloGovdesi');
         tbody.innerHTML = "";
 
-        if(data.length > 0 && !data.status) { 
+        if (data.length > 0 && !data.status) { 
+            // İstatistikler
             document.getElementById('statTotal').innerText = data.length;
             document.getElementById('statPending').innerText = data.filter(x => x.Durum === 'Bekliyor').length;
             document.getElementById('statDone').innerText = data.filter(x => x.Durum === 'Tamamlandı').length;
             
+            // Tabloyu Doldur
             data.reverse().forEach(item => {
                 let color = item.Durum === 'Tamamlandı' ? 'success' : (item.Durum === 'İptal' ? 'danger' : 'warning');
                 tbody.innerHTML += `
                     <tr>
-                        <td>#${item.ID}</td>
+                        <td class="text-muted small">#${item.ID}</td>
                         <td>${formatDate(item.Tarih)}</td>
-                        <td>${item['Karar Metni']}</td>
+                        <td class="fw-bold">${item['Karar Metni']}</td>
                         <td>${item.Sorumlu}</td>
                         <td><span class="badge bg-${color}">${item.Durum}</span></td>
                         <td class="text-end">
@@ -249,10 +272,11 @@
                         </td>
                     </tr>`;
             });
-        } else { tbody.innerHTML = "<tr><td colspan='6' class='text-center'>Veri yok.</td></tr>"; }
+        } else { tbody.innerHTML = "<tr><td colspan='6' class='text-center py-3 text-muted'>Henüz kayıt yok.</td></tr>"; }
         loader(false);
     }
 
+    // Ekle / Sil / Güncelle (Şifreyi otomatik kullanır)
     async function kararEkle() {
         const veri = {
             kararMetni: document.getElementById('e_metin').value,
@@ -261,14 +285,13 @@
             sonTarih: document.getElementById('e_sonTarih').value
         };
         loader(true);
-        // Otomatik SESSION_KEY kullanımı
         await fetch(API_URL + "?action=add&sheetName=" + encodeURIComponent(currentSheetName) + "&key=" + SESSION_KEY, { method: "POST", body: JSON.stringify(veri) });
         bootstrap.Modal.getInstance(document.getElementById('ekleModal')).hide();
         kararlariGetir();
     }
 
     async function kararSil(id) {
-        if(!confirm("Silinsin mi?")) return;
+        if(!confirm("Silmek istediğine emin misin?")) return;
         loader(true);
         await fetch(API_URL + "?action=delete&id=" + id + "&sheetName=" + encodeURIComponent(currentSheetName) + "&key=" + SESSION_KEY);
         kararlariGetir();
@@ -289,6 +312,7 @@
         kararlariGetir();
     }
 
+    // Modal ve Yardımcılar
     function modalAc(item) {
         document.getElementById('d_id').value = item.ID;
         document.getElementById('d_metin').value = item['Karar Metni'];
